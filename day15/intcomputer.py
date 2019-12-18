@@ -11,28 +11,28 @@ RELATIVE_MODE = 2
 def binary_operator(operator, computer, mode1=0, mode2=0, mode3=0):
     operand1 = computer.read(1, mode1)
     operand2 = computer.read(2, mode2)
-    computer.write(3, operator(operand1, operand2), mode3)
+    computer.write(3, int(operator(operand1, operand2)), mode3)
     computer.advance(4)
 
 
 def add(*args):
-    return binary_operator(operator.add, *args)
+    binary_operator(operator.add, *args)
 
 
 def mul(*args):
-    return binary_operator(operator.mul, *args)
+    binary_operator(operator.mul, *args)
 
 
 def lt(*args):
-    return binary_operator(operator.lt, *args)
+    binary_operator(operator.lt, *args)
 
 
 def eq(*args):
-    return binary_operator(operator.eq, *args)
+    binary_operator(operator.eq, *args)
 
 
 def inp(computer, mode1=0):
-    value = next(computer.stdin)
+    value = int(next(computer.stdin))
     assert mode1 != 1
     computer.write(1, value, mode1)
     computer.advance(2)
@@ -128,4 +128,3 @@ class Computer:
             opcode_func = opcodes[real_opcode]
             opcode_func(self, *modes)
             opcode = self.memory[self.position]
-        print("Opcode 99")

@@ -50,7 +50,7 @@ class Console:
                     self.ball_pos = x
                 out += char
             out += "\n"
-        out += ' '* (width//2)
+        out += ' ' * (width//2)
         out += str(self.score)
         print(out)
         import time
