@@ -124,7 +124,7 @@ class Computer:
 
     def jump(self, address):
         self.position = address
-    
+
     def stop(self):
         self.stopped = True
 

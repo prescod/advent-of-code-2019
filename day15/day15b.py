@@ -138,6 +138,13 @@ class Map:
         print("PATH", path)
         print("LENGTH", len(path)-1)
 
+        longest_path = 0
+
+        for location in self.locations:
+            if self.locations[location] == SPACE:
+                longest_path = max(longest_path, len(shortest_path(self.connections, self.treasure_pos, location)) - 1)
+        print(longest_path)
+
 
 class IO:
     def __init__(self):
