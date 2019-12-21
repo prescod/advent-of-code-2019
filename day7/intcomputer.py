@@ -43,8 +43,8 @@ def inp(computer, mode1=0):
 
 
 def outp(computer, mode1=0):
-    val_address = computer.read(1, mode1)
-    computer.stdout(val_address)
+    val = computer.read(1, mode1)
+    yield val
     computer.advance(2)
 
 
@@ -96,7 +96,6 @@ def opcode_modes(opcode):
 class Computer:
     memory: list = None
     stdin: None = None
-    stdout: None = None
     position: int = 0
     relative_base: int = 0
     stopped = False
@@ -133,5 +132,7 @@ class Computer:
         while opcode != 99 and not self.stopped:
             real_opcode, modes = opcode_modes(opcode)
             opcode_func = opcodes[real_opcode]
-            opcode_func(self, *modes)
+            val = opcode_func(self, *modes)
+            if val:
+                yield from val
             opcode = self.memory[self.position]

@@ -15,15 +15,8 @@ program = [int(x) for x in open("day7.txt").read().split(",")]
 def compute(inputs):
     working_memory = defaultdict(int, enumerate(program))
 
-    class Output:
-        def output(self, value):
-            self.value = value
-
-    output = Output()
-
-    c = Computer(working_memory, inputs, output.output)
-    c.compute()
-    return output.value
+    c = Computer(working_memory, inputs)
+    return next(c.compute())
 
 
 def test_settings(phase_settings):
