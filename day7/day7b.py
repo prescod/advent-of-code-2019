@@ -20,38 +20,49 @@ def start_computation(inputs):
 
 
 class Inputter:
-    previous_inputter = None
-
-    def __init__(self,):
-        self._next_value = None
+    def __init__(self, identifier):
+        self.identifier = identifier
+        # self.values = [None]
+        self.values = []
 
     def next_value(self):
         while 1:
-            yield self._next_value
+            value = self.values.pop(0)
+            print("Reading", self.identifier, value)
+            yield value
+
+    def send(self, value):
+        print("Writing", self.identifier, 1)
+        self.values.append(value)
 
 
 def test_settings(phase_settings):
     assert len(phase_settings) == 5
     num_computers = len(phase_settings)
     computations = []
-    inputters = [Inputter() for i in range(num_computers)]
-    previous_output = 0
+    input_streams = [Inputter(i) for i in range(num_computers)]
+
+    # queue up phase settings
     for i in range(num_computers):
-        inputter = inputters[i]
-        computation = start_computation(itertools.chain(
-            [phase_settings[i], previous_output], inputter.next_value()))
+        input_streams[i].send(phase_settings[i])
+
+    # queue up starting value
+    input_streams[0].send(0)
+
+    for i in range(num_computers):
+        inputter = input_streams[i]
+        computation = start_computation(input_streams[i].next_value())
         computations.append(computation)
         previous_output = next(computation)
-        inputters[(i+1) % num_computers]._next_value = previous_output
+        input_streams[(i+1) % num_computers].send(previous_output)
 
     while 1:
-        for i in range(num_computers):
-            print(i)
-            output = next(computations[i], None)
+        for i, computation in enumerate(computations):
+            output = next(computation, None)
             if output is None:
                 return previous_output
             previous_output = output
-            inputters[(i+1) % num_computers]._next_value = previous_output
+            input_streams[(i+1) % num_computers].send(previous_output)
 
     return previous_output
 
@@ -62,8 +73,10 @@ def test_permutations():
     for permutation in itertools.permutations(range(5, 10)):
         rc = test_settings(permutation)
         mx = max(rc, mx)
-        print(permutation, rc, mx)
+        print(permutation, mx)
     return mx
 
 
+# print(test_settings((9, 8, 7, 6, 5)))
 print(test_permutations())
+# print(test_settings([9, 8, 7, 6, 5]))
