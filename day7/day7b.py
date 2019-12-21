@@ -5,36 +5,55 @@ from intcomputer import Computer
 
 
 program = [int(x) for x in open("day7.txt").read().split(",")]
-# program = [3, 15, 3, 16, 1002, 16, 10, 16, 1, 16, 15, 15, 4, 15, 99, 0, 0]
-# # program = [3, 23, 3, 24, 1002, 24, 10, 24, 1002, 23, -1, 23,
-# #            101, 5, 23, 23, 1, 24, 23, 23, 4, 23, 99, 0, 0]
-# program = [3, 31, 3, 32, 1002, 32, 10, 32, 1001, 31, -2, 31, 1007, 31, 0, 33,
-#            1002, 33, 7, 33, 1, 33, 31, 31, 1, 32, 31, 31, 4, 31, 99, 0, 0, 0]
+# program = [3, 26, 1001, 26, -4, 26, 3, 27, 1002, 27, 2, 27, 1, 27, 26,
+#            27, 4, 27, 1001, 28, -1, 28, 1005, 28, 6, 99, 0, 0, 5]
+# program = [3, 52, 1001, 52, -5, 52, 3, 53, 1, 52, 56, 54, 1007, 54, 5, 55, 1005, 55, 26, 1001, 54,
+#            -5, 54, 1105, 1, 12, 1, 53, 54, 53, 1008, 54, 0, 55, 1001, 55, 1, 55, 2, 53, 55, 53, 4,
+#            53, 1001, 56, -1, 56, 1005, 56, 6, 99, 0, 0, 0, 0, 10]
 
 
-def make_computer(phase_setting):
+def start_computation(inputs):
     working_memory = defaultdict(int, enumerate(program))
 
-    class Output:
+    c = Computer(working_memory, inputs)
+    return c.compute()
 
-        def output(self, value):
-            self.value = value
 
-    output = Output()
+class Inputter:
+    previous_inputter = None
 
-    xyzzy()
-    c = Computer(working_memory, inputs, output.output)
-    return output
+    def __init__(self,):
+        self._next_value = None
+
+    def next_value(self):
+        while 1:
+            yield self._next_value
 
 
 def test_settings(phase_settings):
     assert len(phase_settings) == 5
-    input = 0
-    computers = [make_computer(phase_settings[i])
-                 for i in range(0, 5)]
-    while 1:
+    num_computers = len(phase_settings)
+    computations = []
+    inputters = [Inputter() for i in range(num_computers)]
+    previous_output = 0
+    for i in range(num_computers):
+        inputter = inputters[i]
+        computation = start_computation(itertools.chain(
+            [phase_settings[i], previous_output], inputter.next_value()))
+        computations.append(computation)
+        previous_output = next(computation)
+        inputters[(i+1) % num_computers]._next_value = previous_output
 
-    computers[0].compute()
+    while 1:
+        for i in range(num_computers):
+            print(i)
+            output = next(computations[i], None)
+            if output is None:
+                return previous_output
+            previous_output = output
+            inputters[(i+1) % num_computers]._next_value = previous_output
+
+    return previous_output
 
 
 def test_permutations():
@@ -43,6 +62,7 @@ def test_permutations():
     for permutation in itertools.permutations(range(5, 10)):
         rc = test_settings(permutation)
         mx = max(rc, mx)
+        print(permutation, rc, mx)
     return mx
 
 
