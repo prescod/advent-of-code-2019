@@ -4,7 +4,8 @@ from operator import add, mul
 def process(operator, address1, address2, target_address, memory):
     operand1 = memory[address1]
     operand2 = memory[address2]
-    print(operator, (address1, address2), (operand1, operand2), target_address, memory)
+    print(operator, (address1, address2),
+          (operand1, operand2), target_address, memory)
     memory[target_address] = operator(operand1, operand2)
 
 
@@ -12,7 +13,6 @@ opcodes = {1: add, 2: mul}
 
 
 def compute(memory, position):
-    opcode = None
     opcode = memory[position]
     while opcode != 99:
         if opcode in opcodes:
