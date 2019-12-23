@@ -1,0 +1,15 @@
+[package]
+name = "advent-day-4"
+version = "1.0.0"
+
+[dependencies]
+regex = "*"
+fancy-regex = "*"
+
+[[bin]]
+name = "a"
+path = "day4a.rs"
+
+[[bin]]
+name = "b"
+path = "day4b.rs"
