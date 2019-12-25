@@ -1,3 +1,4 @@
+from typing import Callable
 import operator
 from functools import partial
 from dataclasses import dataclass
@@ -7,8 +8,62 @@ ADDRESS_MODE = 0
 IMMEDIATE_MODE = 1
 RELATIVE_MODE = 2
 
+def opcode_modes(opcode: int):
+    real_opcode = opcode % 100
+    modeflags = opcode // 100
+    modes = []
+    while modeflags:
+        modes.append(modeflags % 10)
+        modeflags = modeflags // 10
+    assert real_opcode in opcodes, opcode
+    return real_opcode, modes
 
-def binary_operator(operator, computer, mode1=0, mode2=0, mode3=0):
+@dataclass
+class Computer:
+    memory: list = None
+    stdin: None = None
+    position: int = 0
+    relative_base: int = 0
+    stopped = False
+
+    def advance(self, positions: int):
+        self.position += positions
+
+    def read(self, num: int, mode: int):
+        value = self.memory[self.position + num]
+        if mode == IMMEDIATE_MODE:
+            return value
+        elif mode == RELATIVE_MODE:
+            return self.memory[self.relative_base + value]
+        else:
+            return self.memory[value]
+
+    def write(self, num:int, value:int, mode:int):
+        assert mode != IMMEDIATE_MODE
+        address_operand = self.memory[self.position + num]
+        if mode == RELATIVE_MODE:
+            address = address_operand + self.relative_base
+        else:
+            address = address_operand
+        self.memory[address] = value
+
+    def jump(self, address:int):
+        self.position = address
+
+    def stop(self):
+        self.stopped = True
+
+    def compute(self):
+        opcode = self.memory[self.position]
+        while opcode != 99 and not self.stopped:
+            real_opcode, modes = opcode_modes(opcode)
+            opcode_func = opcodes[real_opcode]
+            val = opcode_func(self, *modes)
+            if val:
+                yield from val
+            opcode = self.memory[self.position]
+
+def binary_operator(operator: Callable, computer: Computer, mode1: int = 0, mode2: int = 0, mode3: int = 0):
     operand1 = computer.read(1, mode1)
     operand2 = computer.read(2, mode2)
     computer.write(3, int(operator(operand1, operand2)), mode3)
@@ -31,7 +86,7 @@ def eq(*args):
     binary_operator(operator.eq, *args)
 
 
-def inp(computer, mode1=0):
+def inp(computer: Computer, mode1: int = 0):
     input_value = next(computer.stdin)
     if input_value is not None:
         int_value = int(input_value)
@@ -42,20 +97,20 @@ def inp(computer, mode1=0):
         computer.stop()
 
 
-def outp(computer, mode1=0):
+def outp(computer: Computer, mode1: int = 0):
     val = computer.read(1, mode1)
     yield val
     computer.advance(2)
 
 
-def jump_if_true(computer, mode1=0, mode2=0):
+def jump_if_true(computer: Computer, mode1: int = 0, mode2: int = 0):
     if computer.read(1, mode1):
         computer.jump(computer.read(2, mode2))
     else:
         computer.advance(3)
 
 
-def jump_if_false(computer, mode1=0, mode2=0):
+def jump_if_false(computer: Computer, mode1: int = 0, mode2: int = 0):
     cond = computer.read(1, mode1)
     if not cond:
         computer.jump(computer.read(2, mode2))
@@ -63,7 +118,7 @@ def jump_if_false(computer, mode1=0, mode2=0):
         computer.advance(3)
 
 
-def adjust_relative_base(computer, mode1=0):
+def adjust_relative_base(computer: Computer, mode1=0):
     computer.relative_base += computer.read(1, mode1)
     computer.advance(2)
 
@@ -81,58 +136,3 @@ opcodes = {
 }
 
 
-def opcode_modes(opcode):
-    real_opcode = opcode % 100
-    modeflags = opcode // 100
-    modes = []
-    while modeflags:
-        modes.append(modeflags % 10)
-        modeflags = modeflags // 10
-    assert real_opcode in opcodes, opcode
-    return real_opcode, modes
-
-
-@dataclass
-class Computer:
-    memory: list = None
-    stdin: None = None
-    position: int = 0
-    relative_base: int = 0
-    stopped = False
-
-    def advance(self, positions: int):
-        self.position += positions
-
-    def read(self, num, mode):
-        value = self.memory[self.position + num]
-        if mode == IMMEDIATE_MODE:
-            return value
-        elif mode == RELATIVE_MODE:
-            return self.memory[self.relative_base + value]
-        else:
-            return self.memory[value]
-
-    def write(self, num, value, mode):
-        assert mode != IMMEDIATE_MODE
-        address_operand = self.memory[self.position + num]
-        if mode == RELATIVE_MODE:
-            address = address_operand + self.relative_base
-        else:
-            address = address_operand
-        self.memory[address] = value
-
-    def jump(self, address):
-        self.position = address
-
-    def stop(self):
-        self.stopped = True
-
-    def compute(self):
-        opcode = self.memory[self.position]
-        while opcode != 99 and not self.stopped:
-            real_opcode, modes = opcode_modes(opcode)
-            opcode_func = opcodes[real_opcode]
-            val = opcode_func(self, *modes)
-            if val:
-                yield from val
-            opcode = self.memory[self.position]
