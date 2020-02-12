@@ -147,25 +147,6 @@ class IO:
     def input(self):
         potentials = []
         while 1:
-            # target_node = self.map.find_nearest_incomplete()
-            # if target_node == self.map.pos:
-            #     for direction in range(1,5):
-            #         target = self.map.next_pos(direction)
-            #         symbol = self.map.locations.get(target)
-            #         if not symbol:  # new location
-            #             potentials = [direction]  # always prefer new locations
-            #             # print("New", target, symbol)
-            #             break
-            #         elif symbol==SPACE:
-            #             potentials.append(direction)
-            #             # print("Retread", target, symbol)
-            #         elif symbol==WALL:
-            #             pass
-            #         else:
-            #             assert 0, symbol
-            #     command = random.choice(potentials)
-            # else:
-
             self.command = self.map.next_step()
             yield self.command
 
