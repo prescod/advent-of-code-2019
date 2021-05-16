@@ -6,3 +6,4 @@ def fuel(x):
 
 
 print(sum(fuel(int(x)) for x in lines))
+
